@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroShield AI - Live Environmental Inundation System</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; display: flex; height: 100vh; overflow: hidden; background: #090d16; color: #f8fafc; }
+        
+        #sidebar { width: 400px; height: 100vh; background: #0f172a; padding: 24px; z-index: 1000; box-shadow: 4px 0 20px rgba(0,0,0,0.6); display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #1e293b; }
+        .brand { font-size: 24px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 12px; }
+        .brand span { color: #38bdf8; }
+        .subtitle { color: #94a3b8; font-size: 11px; margin-top: 4px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        hr { border: 0; height: 1px; background: #1e293b; margin-bottom: 16px; }
+        
+        .search-box { display: flex; gap: 8px; margin-bottom: 16px; }
+        .search-input { flex: 1; background: #1e293b; border: 1px solid #334155; color: white; padding: 10px 12px; border-radius: 6px; font-size: 13px; }
+        .search-btn { background: #38bdf8; color: #0f172a; border: none; padding: 10px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+
+        .card { background: #1e293b; border-radius: 10px; padding: 14px; margin-bottom: 14px; border: 1px solid #334155; border-left: 4px solid #38bdf8; }
+        .card h3 { font-size: 11px; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .card p { font-size: 13px; color: #cbd5e1; margin: 4px 0; display: flex; justify-content: space-between; }
+        
+        .live-pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; margin-right: 6px; }
+        
+        .ward-item { background: #090d16; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+        .badge-yellow { background: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid #eab308; }
+        .badge-green { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; }
+        
+        .btn-alert { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 14px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: 700; font-size: 13px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); }
+
+        #map { flex: 1; height: 100vh; background: #020617; }
+
+        #alert-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-content { background: #0f172a; border: 1px solid #ef4444; width: 420px; padding: 24px; border-radius: 12px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.3); text-align: center; }
+        .modal-title { font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 8px; }
+        .modal-body { font-size: 13px; color: #cbd5e1; margin-bottom: 20px; line-height: 1.5; }
+        .modal-btn { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<audio id="alert-sound" src="alert.mp3" preload="auto"></audio>
+
+<div id="sidebar">
+    <div>
+        <div class="brand">🛡️ AeroShield <span>AI</span></div>
+        <div class="subtitle">Live Environmental Inundation System</div>
+        <hr>
+
+        <div class="search-box">
+            <input type="text" id="city-search" class="search-input" placeholder="Search City (e.g. Vijayawada, Mumbai)..." value="Vijayawada">
+            <button class="search-btn" onclick="searchCity()">Search</button>
+        </div>
+
+        <div class="card">
+            <h3><span class="live-pulse"></span> Real-Time Weather Feed</h3>
+            <p>Rain Intensity: <strong id="rain-rate" style="color: #38bdf8;">Loading...</strong></p>
+            <p>Lead-Time Window: <strong style="color: #22c55e;">+3 Hours Ahead</strong></p>
+            <p>Data Source: <strong>Live Satellite Telemetry</strong></p>
+        </div>
+
+        <div class="card" style="border-left-color: #ef4444;">
+            <h3>Zonal Risk Forecast</h3>
+            <div id="ward-list">
+                <p style="color: #64748b; font-size: 12px;">Fetching satellite feeds...</p>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <button class="btn-alert" onclick="triggerAlert()">🚨 Dispatch Emergency Alerts</button>
+    </div>
+</div>
+
+<div id="map"></div>
+
+<div id="alert-modal">
+    <div class="modal-content">
+        <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+        <div class="modal-title">EMERGENCY DISPATCH ISSUED</div>
+        <div class="modal-body" id="modal-text">
+            Automated alerts & drainage dispatch triggered for high-risk zones.
+        </div>
+        <button class="modal-btn" onclick="closeModal()">Dismiss</button>
+    </div>
+</div>
+
+<script>
+    const map = L.map('map', { zoomControl: false }).setView([16.5062, 80.6480], 13);
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Esri, Open-Meteo Telemetry',
+        maxZoom: 16
+    }).addTo(map);
+
+    const alertAudio = document.getElementById('alert-sound');
+    let markersLayer = L.layerGroup().addTo(map);
+
+    function loadLiveData(lat, lng) {
+        fetch(`http://127.0.0.1:8000/api/v1/inundation?lat=${lat}&lng=${lng}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('rain-rate').innerText = `${data.rainfall_rate_mm_hr} mm/hr`;
+                
+                const list = document.getElementById('ward-list');
+                list.innerHTML = '';
+                markersLayer.clearLayers();
+
+                data.wards.forEach(ward => {
+                    const color = ward.status === 'RED' ? '#ef4444' : ward.status === 'YELLOW' ? '#eab308' : '#22c55e';
+                    
+                    const item = document.createElement('div');
+                    item.className = 'ward-item';
+                    item.innerHTML = `
+                        <div>
+                            <strong style="color: #f8fafc; font-size: 12px;">${ward.ward}</strong><br>
+                            <span style="color: #94a3b8; font-size: 10px;">Depth: ${ward.depth_cm} cm | ${ward.risk_level}</span>
+                        </div>
+                        <span class="badge badge-${ward.status.toLowerCase()}">${ward.status}</span>
+                    `;
+                    list.appendChild(item);
+
+                    const circle = L.circleMarker([ward.lat, ward.lng], {
+                        color: color,
+                        fillColor: color,
+                        fillOpacity: 0.8,
+                        radius: 14
+                    });
+
+                    circle.bindPopup(`
+                        <div style="color: #0f172a; font-family: sans-serif; padding: 4px;">
+                            <strong style="font-size: 13px;">${ward.ward}</strong><br>
+                            <span style="font-size: 11px;">Live Rain Rate: <b>${data.rainfall_rate_mm_hr} mm/hr</b></span><br>
+                            <span style="font-size: 11px;">Predicted Water Logging: <b style="color: ${color};">${ward.depth_cm} cm</b></span><br>
+                            <span style="font-size: 10px; color: #64748b;">Action: ${ward.action}</span>
+                        </div>
+                    `);
+                    
+                    markersLayer.addLayer(circle);
+                });
+            })
+            .catch(err => {
+                document.getElementById('ward-list').innerHTML = '<p style="color:#ef4444; font-size: 12px;">Python backend offline. Run server.py!</p>';
+            });
+    }
+
+    function searchCity() {
+        const city = document.getElementById('city-search').value;
+        if (!city) return;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    map.setView([lat, lon], 13);
+                    loadLiveData(lat, lon);
+                } else {
+                    alert("City not found.");
+                }
+            });
+    }
+
+    function triggerAlert() {
+        alertAudio.currentTime = 0;
+        alertAudio.play().catch(e => console.log(e));
+        document.getElementById('alert-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('alert-modal').style.display = 'none';
+        alertAudio.pause();
+    }
+
+    // Initial Load for Vijayawada
+    loadLiveData(16.5062, 80.6480);
+</script>
+
+</body>
+</html>
