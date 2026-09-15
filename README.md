@@ -27,6 +27,8 @@ By eliminating the need for expensive physical IoT water level sensors, AeroShie
 * 🗺️ **Ward-Level Inundation Depth**: Calculates localized water accumulation ($\text{cm}$) based on micro-topography (elevation & slope).
 * 🧠 **Explainable Risk Engine**: Tells emergency officers *why* specific underpasses flood by correlating precipitation rate ($\text{mm/hr}$) with terrain metrics.
 * 🔊 **Browser-Based Emergency Siren**: Programmatic warning synthesized via Web Audio API upon critical risk threshold breaches.
+
+* ## 🏗️ System Architecture
 ┌─────────────────────────────────────────┐
               │    ATMOSPHERIC & TERRAIN DATA FEEDS     │
               └────────────────────┬────────────────────┘
@@ -99,5 +101,16 @@ uvicorn main:app --reload --port 8000
 # Open frontend index.html directly in browser or serve via Live Server
 open frontend/index.html
 ---
+🔮 Scalability Roadmap
+[x] Phase 1 (MVP): Live Open-Meteo & ISRO Bhuvan DEM hydrological runoff integration.
 
-## 🏗️ System Architecture
+[ ] Phase 2 (Radar Nowcasting): PyTorch implementation of U-Net for cloud-motion radar prediction.
+
+[ ] Phase 3 (ML Runoff Refinement): XGBoost integration trained on historical IMD & NASA GPM rainfall datasets.
+
+[ ] Phase 4 (Enterprise GIS): Migration to PostGIS + Mapbox GL JS for sub-meter resolution spatial rendering.
+
+📜 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+
