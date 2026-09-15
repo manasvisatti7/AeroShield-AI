@@ -27,7 +27,77 @@ By eliminating the need for expensive physical IoT water level sensors, AeroShie
 * 🗺️ **Ward-Level Inundation Depth**: Calculates localized water accumulation ($\text{cm}$) based on micro-topography (elevation & slope).
 * 🧠 **Explainable Risk Engine**: Tells emergency officers *why* specific underpasses flood by correlating precipitation rate ($\text{mm/hr}$) with terrain metrics.
 * 🔊 **Browser-Based Emergency Siren**: Programmatic warning synthesized via Web Audio API upon critical risk threshold breaches.
+┌─────────────────────────────────────────┐
+              │    ATMOSPHERIC & TERRAIN DATA FEEDS     │
+              └────────────────────┬────────────────────┘
+                                   │
+        ┌──────────────────────────┴──────────────────────────┐
+        ▼                                                     ▼
+┌───────────────────────────────┐                     ┌───────────────────────────────┐
+│   Open-Meteo Weather API      │                     │   ISRO Bhuvan / SRTM DEM      │
+│  (Real-Time Rain Rate mm/hr)  │                     │  (30m Elevation & Slope Data) │
+└───────────────┬───────────────┘                     └───────────────┬───────────────┘
+│                                                     │
+└──────────────────────────┬──────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────┐
+│    ASYNCHRONOUS PYTHON FASTAPI CORE     │
+│    (Backend Hosted Live on Render)      │
+└────────────────────┬────────────────────┘
+│
+▼
+┌─────────────────────────────────────────┐
+│   HYDROLOGICAL RUNOFF PREDICTION ENGINE │
+│   [ Depth (cm) = Rain × Runoff Coef ]   │
+└────────────────────┬────────────────────┘
+│
+▼
+┌─────────────────────────────────────────┐
+│   SPATIAL GIS DASHBOARD (Leaflet.js)    │
+│    (Frontend Hosted Live on Netlify)    │
+└─────────────────────────────────────────┘
 
+
+---
+
+## 🛠️ Tech Stack & Tools
+
+| Component | Technology / Platform |
+| :--- | :--- |
+| **Frontend GIS** | Leaflet.js, Esri Dark Canvas, HTML5/CSS3, JavaScript (ES6+) |
+| **Audio Engine** | Web Audio API Synthesizer (Code-based Siren) |
+| **Backend API** | Python 3.10+, FastAPI, AsyncIO, Uvicorn |
+| **Geocoding** | Esri ArcGIS World Geocoding API |
+| **Data Telemetry** | Open-Meteo Weather API, ISRO Bhuvan DEM / SRTM 30m |
+| **Hosting** | Netlify (Frontend), Render (Backend API) |
+
+---
+
+## ⚡ Quickstart & Local Setup
+
+### Prerequisites
+* Python 3.10 or higher
+* Node.js / Modern Browser (Chrome, Firefox, Edge)
+
+### 1. Clone the Repository
+```bash
+git clone [https://github.com/manasvisatti7/AeroShield-AI.git](https://github.com/manasvisatti7/AeroShield-AI.git)
+cd AeroShield-AI
+# Navigate to backend directory
+cd backend
+
+# Create & activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the local server
+uvicorn main:app --reload --port 8000
+# Open frontend index.html directly in browser or serve via Live Server
+open frontend/index.html
 ---
 
 ## 🏗️ System Architecture
